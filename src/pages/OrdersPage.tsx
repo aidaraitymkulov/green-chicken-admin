@@ -93,11 +93,13 @@ export function OrdersPage() {
                       onValueChange={v => updateStatus.mutate({ id: order.id, status: v as OrderStatus })}
                     >
                       <SelectTrigger className="h-7 w-36 text-xs">
-                        <Badge variant={STATUS_VARIANT[order.status]} className="text-xs">
-                          {STATUS_LABEL[order.status]}
-                        </Badge>
+                        <SelectValue>
+                          <Badge variant={STATUS_VARIANT[order.status]} className="pointer-events-none text-xs">
+                            {STATUS_LABEL[order.status]}
+                          </Badge>
+                        </SelectValue>
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper" sideOffset={4}>
                         {(Object.keys(STATUS_LABEL) as OrderStatus[]).map(s => (
                           <SelectItem key={s} value={s}>{STATUS_LABEL[s]}</SelectItem>
                         ))}

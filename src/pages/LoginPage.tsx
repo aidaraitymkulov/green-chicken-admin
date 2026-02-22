@@ -22,7 +22,7 @@ export function LoginPage() {
       await login(email, password)
       navigate('/')
     } catch {
-      setError('Неверный email или пароль')
+      setError('Неверный логин или пароль')
     } finally {
       setLoading(false)
     }
@@ -38,13 +38,13 @@ export function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Логин</Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@green-chicken.local"
+                placeholder="admin"
                 required
               />
             </div>

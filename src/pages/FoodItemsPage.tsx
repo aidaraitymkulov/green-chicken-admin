@@ -16,8 +16,8 @@ import { Plus, Pencil, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 const emptyForm = (): FoodItemPayload => ({
-  name: '', title: '', description: '', price: 0,
-  isPopular: false, portions: [], sortOrder: 0, categoryId: '',
+  name: '', title: '', description: '', price: undefined as unknown as number,
+  isPopular: false, portions: [], sortOrder: undefined, categoryId: '',
 })
 
 export function FoodItemsPage() {
@@ -202,7 +202,7 @@ export function FoodItemsPage() {
                 <Input
                   type="number"
                   min={0}
-                  value={form.price}
+                  value={form.price ?? ''}
                   onChange={e => setForm({ ...form, price: Number(e.target.value) })}
                   required
                 />
@@ -212,7 +212,7 @@ export function FoodItemsPage() {
                 <Input
                   type="number"
                   min={0}
-                  value={form.sortOrder ?? 0}
+                  value={form.sortOrder ?? ''}
                   onChange={e => setForm({ ...form, sortOrder: Number(e.target.value) })}
                 />
               </div>

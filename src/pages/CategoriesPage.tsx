@@ -1,22 +1,31 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { categoriesApi, type Category, type CategoryPayload } from '@/api/categories'
+import { uploadApi } from '@/api/upload'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 
-const empty: CategoryPayload = { name: '', slug: '', sortOrder: 0 }
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api'
+const baseUrl = API_URL.replace(/\/api\/?$/, '')
+
+const empty: CategoryPayload = { name: '', slug: '' }
 
 export function CategoriesPage() {
   const qc = useQueryClient()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Category | null>(null)
   const [form, setForm] = useState<CategoryPayload>(empty)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  // модалка для просмотра фото
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
 
   const { data: categories, isLoading } = useQuery({
     queryKey: ['categories'],
@@ -50,6 +59,25 @@ export function CategoriesPage() {
   }
   const close = () => setOpen(false)
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const { data } = await uploadApi.upload(file)
+      setForm(prev => ({ ...prev, image: data.url }))
+    } catch {
+      toast.error('Ошибка загрузки файла')
+    } finally {
+      setUploading(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  const removeImage = () => {
+    setForm(prev => ({ ...prev, image: undefined }))
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (editing) update.mutate({ id: editing.id, data: form })
@@ -78,6 +106,7 @@ export function CategoriesPage() {
               <TableRow>
                 <TableHead>Название</TableHead>
                 <TableHead>Slug</TableHead>
+                <TableHead>Фото</TableHead>
                 <TableHead>Порядок</TableHead>
                 <TableHead className="w-24" />
               </TableRow>
@@ -87,6 +116,19 @@ export function CategoriesPage() {
                 <TableRow key={cat.id}>
                   <TableCell className="font-medium">{cat.name}</TableCell>
                   <TableCell className="text-muted-foreground">{cat.slug}</TableCell>
+                  <TableCell>
+                    {cat.image ? (
+                      <button
+                        type="button"
+                        className="text-sm text-blue-600 underline hover:text-blue-800"
+                        onClick={() => setPreviewImage(`${baseUrl}${cat.image}`)}
+                      >
+                        Фото
+                      </button>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell>{cat.sortOrder}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
@@ -110,6 +152,7 @@ export function CategoriesPage() {
         </div>
       )}
 
+      {/* Модалка создания / редактирования */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -135,9 +178,44 @@ export function CategoriesPage() {
               <Input
                 type="number"
                 min={0}
-                value={form.sortOrder ?? 0}
+                value={form.sortOrder ?? ''}
                 onChange={e => setForm({ ...form, sortOrder: Number(e.target.value) })}
               />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Фото</Label>
+              {form.image ? (
+                <div className="flex items-center gap-2">
+                  <img
+                    src={`${baseUrl}${form.image}`}
+                    alt="Превью"
+                    className="h-16 w-16 rounded object-cover"
+                  />
+                  <Button type="button" variant="ghost" size="icon" onClick={removeImage}>
+                    <X size={16} />
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => fileRef.current?.click()}
+                  >
+                    <Upload size={14} className="mr-2" />
+                    {uploading ? 'Загрузка...' : 'Загрузить'}
+                  </Button>
+                </div>
+              )}
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={close}>Отмена</Button>
@@ -146,6 +224,22 @@ export function CategoriesPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Модалка просмотра фото */}
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Фото категории</DialogTitle>
+          </DialogHeader>
+          {previewImage && (
+            <img
+              src={previewImage}
+              alt="Фото категории"
+              className="w-full rounded object-contain"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
