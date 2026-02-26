@@ -13,6 +13,7 @@ export interface FoodItem {
   price: number
   image: string | null
   isPopular: boolean
+  isNew: boolean
   portions: Portion[] | null
   sortOrder: number
   categoryId: string
@@ -28,6 +29,7 @@ export interface FoodItemPayload {
   price: number
   image?: string
   isPopular?: boolean
+  isNew?: boolean
   portions?: Portion[]
   sortOrder?: number
   categoryId: string

@@ -17,7 +17,7 @@ import { toast } from 'sonner'
 
 const emptyForm = (): FoodItemPayload => ({
   name: '', title: '', description: '', price: undefined as unknown as number,
-  isPopular: false, portions: [], sortOrder: undefined, categoryId: '',
+  isPopular: false, isNew: false, portions: [], sortOrder: undefined, categoryId: '',
 })
 
 export function FoodItemsPage() {
@@ -63,7 +63,7 @@ export function FoodItemsPage() {
     setForm({
       name: item.name, title: item.title, description: item.description,
       price: item.price, image: item.image ?? undefined,
-      isPopular: item.isPopular, portions: item.portions ?? [],
+      isPopular: item.isPopular, isNew: item.isNew, portions: item.portions ?? [],
       sortOrder: item.sortOrder, categoryId: item.categoryId,
     })
     setOpen(true)
@@ -140,6 +140,7 @@ export function FoodItemsPage() {
                 <TableHead>Категория</TableHead>
                 <TableHead>Цена</TableHead>
                 <TableHead>Популярное</TableHead>
+                <TableHead>Новинка</TableHead>
                 <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
@@ -151,6 +152,9 @@ export function FoodItemsPage() {
                   <TableCell>{item.price.toLocaleString()}с</TableCell>
                   <TableCell>
                     {item.isPopular && <Badge variant="secondary">Да</Badge>}
+                  </TableCell>
+                  <TableCell>
+                    {item.isNew && <Badge variant="secondary">Да</Badge>}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
@@ -244,6 +248,15 @@ export function FoodItemsPage() {
                   onChange={e => setForm({ ...form, isPopular: e.target.checked })}
                 />
                 <Label htmlFor="popular">Популярное блюдо</Label>
+              </div>
+              <div className="col-span-2 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isNew"
+                  checked={form.isNew}
+                  onChange={e => setForm({ ...form, isNew: e.target.checked })}
+                />
+                <Label htmlFor="isNew">Новинка</Label>
               </div>
             </div>
 
